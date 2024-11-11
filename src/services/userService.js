@@ -25,7 +25,7 @@ let handleUserLogin = (email, password) => {
             if (isExist) {
 
                 let user = await db.User.findOne({
-                    attributes: ['email', 'roleId', 'password'],
+                    attributes: ['email', 'roleId', 'password', 'firstName', 'lastName'],
                     where: { email: email },
                     raw: true
 
@@ -126,8 +126,10 @@ let createNewUser = (data) => {
                     lastName: data.lastName,
                     address: data.address,
                     phoneNumber: data.phoneNumber,
-                    gender: data.gender === '1' ? true : false,
+                    gender: data.gender,
                     roleId: data.roleId,
+                    positionId: data.positionId,
+                    image: data.avatar
                 })
 
                 resolve({
@@ -166,7 +168,7 @@ let deleteUser = (userId) => {
 let editUser = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!data.id) {
+            if (!data.id || !data.roleId || !data.positionId || !data.gender) {
                 resolve({
                     errCode: 2,
                     errMessage: 'Missing required paramenters!'
@@ -180,7 +182,10 @@ let editUser = (data) => {
                 user.firstName = data.firstName;
                 user.lastName = data.lastName;
                 user.address = data.address;
-
+                user.roleId = data.roleId;
+                user.positionId = data.positionId;
+                user.gender = data.gender;
+                user.phoneNumber = data.phoneNumber
                 await user.save();
 
                 resolve({
@@ -197,11 +202,37 @@ let editUser = (data) => {
         }
     })
 }
+let getAllCodeService = (typeInput) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!typeInput) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing require parameters !'
+                })
+            }
+            else {
+                let res = {};
+                let allcode = await db.Allcode.findAll({
+                    where: { type: typeInput }
+                });
+                res.errCode = 0;
+                res.data = allcode;
+                resolve(res);
+            }
 
+
+        } catch (e) {
+            reject(e)
+        }
+    })
+
+}
 module.exports = {
     handleUserLogin: handleUserLogin,
     getAllUsers: getAllUsers,
     createNewUser: createNewUser,
     deleteUser: deleteUser,
-    editUser: editUser
+    editUser: editUser,
+    getAllCodeService: getAllCodeService
 }
